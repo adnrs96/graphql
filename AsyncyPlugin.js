@@ -16,6 +16,15 @@ module.exports = function AsyncyPlugin(builder) {
         }
       },
 
+      // Pluralize AppDns correctly
+      pluralize(string) {
+        if (string.match(/dns$/i)) {
+          return string + 'es';
+        } else {
+          return inflection.pluralize(string);
+        }
+      },
+
       // This removes the 'ByFooIdAndBarId' from the end of relations.
       //
       // If this causes a conflict, use smart comments:
