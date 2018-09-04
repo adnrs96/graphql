@@ -19,7 +19,7 @@ module.exports = function AsyncyPlugin(builder) {
       // Pluralize AppDns correctly
       pluralize(string) {
         if (string.match(/dns$/i)) {
-          return string + 'es';
+          return string + "es";
         } else {
           return inflection.pluralize(string);
         }
@@ -36,18 +36,14 @@ module.exports = function AsyncyPlugin(builder) {
         if (constraint.tags.fieldName) {
           return constraint.tags.fieldName;
         }
-        return this.camelCase(
-          `${this._singularizedTableName(table)}`
-        );
+        return this.camelCase(`${this._singularizedTableName(table)}`);
       },
       manyRelationByKeys(detailedKeys, table, _foreignTable, constraint) {
         if (constraint.tags.foreignFieldName) {
           return constraint.tags.foreignFieldName;
         }
         return this.camelCase(
-          `${this.pluralize(
-            this._singularizedTableName(table)
-          )}`
+          `${this.pluralize(this._singularizedTableName(table))}`
         );
       },
       manyRelationByKeysSimple(detailedKeys, table, _foreignTable, constraint) {
@@ -55,12 +51,9 @@ module.exports = function AsyncyPlugin(builder) {
           return constraint.tags.foreignFieldName;
         }
         return this.camelCase(
-          `${this.pluralize(
-            this._singularizedTableName(table)
-          )}`
+          `${this.pluralize(this._singularizedTableName(table))}`
         );
-      },
-
+      }
     };
   });
-}
+};
