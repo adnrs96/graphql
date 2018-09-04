@@ -1,5 +1,9 @@
 {
+  "scripts": {
+    "lint:fix": "prettier --write *.js"
+  },
   "dependencies": {
+    "pg": "7.4.3",
     "postgraphile": "4.0.0-rc.4"
   },
   "devDependencies": {
