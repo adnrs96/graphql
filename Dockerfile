@@ -1,10 +1,10 @@
-FROM          graphile/postgraphile
+FROM          node:alpine
+LABEL         description="The Asyncy GraphQL stack, based on PostGraphile https://graphile.org/postgraphile/"
+EXPOSE        5000
+ENTRYPOINT    ["node", "server.js"]
 
-COPY          ./AsyncyPlugin.js /AsyncyPlugin.js
+RUN           npm install -g yarn@1.9.4
 
-ENTRYPOINT    ["postgraphile", \
-               "-n", "0.0.0.0", \
-               "-c", "postgres://postgres:@postgres:5432/postgres", \
-               "--schema", "app_public", \
-               "--dynamic-json", \
-               "--append-plugins", "/AsyncyPlugin.js"]
+COPY          ./app /app
+WORKDIR       /app
+RUN           yarn install --production
