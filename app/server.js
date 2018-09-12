@@ -64,7 +64,13 @@ async function pgSettings(req) {
     const {
       rows: [row]
     } = await rootPgPool.query(
-      "select * from app_public.tokens where uuid = $1 and expires <= NOW()",
+      `
+        select tokens.*
+        from app_private.token_secrets
+        inner join app_public.tokens ON (tokens.uuid = token_secrets.token_uuid)
+        where token_secrets.secret = $1
+        and expires >= NOW()
+      `,
       [token]
     );
     if (!row) {
@@ -78,7 +84,9 @@ async function pgSettings(req) {
       // the same mechanism for everything makes sense - saves us having to
       // COALESCE(...) a number of different settings.
       "jwt.claims.owner_uuid": row.owner_uuid,
-      "jwt.claims.permissions": row.permissions.join(",")
+      ...(row.permissions
+        ? { "jwt.claims.permissions": row.permissions.join(",") }
+        : null)
     };
   }
   return {
