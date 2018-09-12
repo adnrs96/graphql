@@ -5,6 +5,29 @@ const pg = require("pg");
 
 const isDev = process.env.NODE_ENV === "development";
 
+const POSTGRAPHILE_ERRORS_TO_SHOW = false
+  ? ["hint", "detail", "errcode"]
+  : [
+      // This list is excessive, but it does sometimes help debugging! We'll
+      // only use this in development, not production.
+      "severity",
+      "code",
+      "detail",
+      "hint",
+      "positon",
+      "internalPosition",
+      "internalQuery",
+      "where",
+      "schema",
+      "table",
+      "column",
+      "dataType",
+      "constraint",
+      "file",
+      "line",
+      "routine"
+    ];
+
 const rootDatabaseURL = process.env.ROOT_DATABASE_URL;
 const databaseURL = process.env.DATABASE_URL;
 if (!rootDatabaseURL) {
@@ -27,6 +50,10 @@ const rootPgPool = new pg.Pool({
 // pgSettings is documented here:
 // https://www.graphile.org/postgraphile/usage-library/#pgsettings-function
 async function pgSettings(req) {
+  const basePermissions = {
+    // Logged in or not, you're a visitor:
+    role: "asyncy_visitor"
+  };
   const auth = req.headers.authorization || "";
   const matches = auth.match(/^bearer ([-a-zA-Z0-9_/+=]+)$/i);
   if (matches) {
@@ -44,17 +71,19 @@ async function pgSettings(req) {
       throw new Error("Invalid or expired token");
     }
     return {
+      ...basePermissions,
+
       // Though this is not actually a JWT, we know that the 'jwt' namespace is
       // safe within PostgreSQL and we may want to use JWTs in future, so using
       // the same mechanism for everything makes sense - saves us having to
       // COALESCE(...) a number of different settings.
       "jwt.claims.owner_uuid": row.owner_uuid,
       "jwt.claims.permissions": row.permissions.join(",")
-
-      // TODO: add `role: 'asyncy_visitor'` or similar once RLS is in place.
     };
   }
-  return {};
+  return {
+    ...basePermissions
+  };
 }
 
 // PostGraphile options are documented here:
@@ -65,14 +94,14 @@ const postgraphileOptions = {
   appendPlugins: [require("./AsyncyPlugin")],
   pgSettings,
 
-  watchPg: false,
+  watchPg: isDev,
   ignoreRBAC: false,
   setofFunctionsContainNulls: false,
   legacyRelations: "omit",
 
   disableQueryLog: !isDev,
   showErrorStack: isDev,
-  extendedErrors: isDev ? ["hint", "detail", "errcode"] : ["errcode"]
+  extendedErrors: isDev ? POSTGRAPHILE_ERRORS_TO_SHOW : ["errcode"]
 };
 const server = http
   .createServer(

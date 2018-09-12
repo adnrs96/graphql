@@ -1,3 +1,6 @@
+# Install the PostGraphile watch fixtures (development only!)
+psql -f node_modules/graphile-build-pg/res/watch-fixtures.sql asyncy
+
 # Build the `asyncy/graphql` image
 docker build -t asyncy/graphql .
 
