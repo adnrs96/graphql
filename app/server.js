@@ -5,12 +5,19 @@ const pg = require("pg");
 
 const isDev = process.env.NODE_ENV === "development";
 
-const rootDatabaseURL =
-  process.env.ROOT_DATABASE_URL ||
-  process.env.DATABASE_URL ||
-  "postgres://postgres@postgres/postgres";
-const databaseURL =
-  process.env.DATABASE_URL || "postgres://postgres@postgres/postgres";
+const rootDatabaseURL = process.env.ROOT_DATABASE_URL;
+const databaseURL = process.env.DATABASE_URL;
+if (!rootDatabaseURL) {
+  throw new Error(
+    "ROOT_DATABASE_URL envvar is required, it should be the authenticated URL to the database using the superuser account, e.g. postgres://superuser:superuser_password@pghost/asyncy"
+  );
+}
+if (!databaseURL) {
+  throw new Error(
+    "DATABASE_URL envvar is required, it should be the authenticated URL to the database using the unprivileged asyncy_authenticator account, e.g. postgres://asyncy_authenticator:SUPER_SECURE_PASSWORD_HERE@pghost/asyncy"
+  );
+}
+
 const databaseSchemaNames = ["app_public"];
 
 const rootPgPool = new pg.Pool({
@@ -41,7 +48,7 @@ async function pgSettings(req) {
       // safe within PostgreSQL and we may want to use JWTs in future, so using
       // the same mechanism for everything makes sense - saves us having to
       // COALESCE(...) a number of different settings.
-      "jwt.claims.user_id": row.owner_uuid,
+      "jwt.claims.owner_uuid": row.owner_uuid,
       "jwt.claims.permissions": row.permissions.join(",")
 
       // TODO: add `role: 'asyncy_visitor'` or similar once RLS is in place.
@@ -59,7 +66,7 @@ const postgraphileOptions = {
   pgSettings,
 
   watchPg: false,
-  ignoreRBAC: true,
+  ignoreRBAC: false,
   setofFunctionsContainNulls: false,
   legacyRelations: "omit",
 
