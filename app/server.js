@@ -70,6 +70,7 @@ async function pgSettings(req) {
         inner join app_public.tokens ON (tokens.uuid = token_secrets.token_uuid)
         where token_secrets.secret = $1
         and expires >= NOW()
+        limit 1
       `,
       [token]
     );
