@@ -58,7 +58,6 @@ async function pgSettings(req) {
   const matches = auth.match(/^bearer ([-a-zA-Z0-9_/+=]+)$/i);
   if (matches) {
     const token = matches[1];
-    // TODO: assert token is a valid UUID before talking to the database.
     // TODO: need to consider adding more `WHERE` clauses to the below SQL query - e.g. `type`, `permissions`, etc.
     // TODO: security review
     const {
