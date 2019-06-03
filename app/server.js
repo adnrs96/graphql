@@ -99,6 +99,7 @@ async function pgSettings(req) {
 const postgraphileOptions = {
   dynamicJson: true,
   graphiql: true,
+  bodySizeLimit: "10MB",
   appendPlugins: [require("./AsyncyPlugin")],
   pgSettings,
 
