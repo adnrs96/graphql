@@ -74,7 +74,10 @@ async function pgSettings(req) {
       [token]
     );
     if (!row) {
-      throw new Error("Invalid or expired token");
+      var error = new Error("InvalidOrExpiredToken");
+      error.statusCode = 401;
+      error.name = "InvalidOrExpiredToken";
+      throw error;
     }
     return {
       ...basePermissions,
