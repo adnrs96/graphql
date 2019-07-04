@@ -74,7 +74,11 @@ async function pgSettings(req) {
       [token]
     );
     if (!row) {
-      throw new Error("Invalid or expired token");
+      // ensure the error object is matching GraphQL/PostGraphile object: error { name, message, statusCode }
+      var error = new Error("InvalidOrExpiredToken");
+      error.statusCode = 401;
+      error.name = "InvalidOrExpiredToken";
+      throw error;
     }
     return {
       ...basePermissions,
