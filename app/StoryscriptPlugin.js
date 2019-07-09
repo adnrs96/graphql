@@ -1,7 +1,7 @@
 /*
  * This file contains some customisations over the default PostGraphile.
  */
-module.exports = function AsyncyPlugin(builder) {
+module.exports = function StoryscriptPlugin(builder) {
   builder.hook("inflection", (inflection, build) => {
     return {
       ...inflection,

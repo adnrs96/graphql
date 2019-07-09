@@ -1,10 +1,10 @@
 # Install the PostGraphile watch fixtures (development only!)
-psql -f node_modules/graphile-build-pg/res/watch-fixtures.sql asyncy
+psql -f node_modules/graphile-build-pg/res/watch-fixtures.sql storyscript
 
-# Build the `asyncy/graphql` image
-docker build -t asyncy/graphql .
+# Build the `storyscript/graphql` image
+docker build -t storyscript/graphql .
 
-# Run the `asyncy/graphql` image (development mode):
+# Run the `storyscript/graphql` image (development mode):
 #
 #   --name is just for convenience
 #   --rm tells Docker to delete the container when it exits
@@ -15,12 +15,12 @@ docker build -t asyncy/graphql .
 #   --env DATABASE_URL is the "authenticator" database URL, used by PostGraphile
 #   --env ROOT_DATABASE_URL is the "root" database URL (i.e. privileged), used by the auth system
 docker run \
-  --name asyncy-graphql \
+  --name storyscript-graphql \
   --rm \
   -it \
   --init \
   -p 5000:5000 \
   --env NODE_ENV="development" \
-  --env DATABASE_URL="postgres://asyncy_authenticator:PLEASE_CHANGE_ME@host.docker.internal/asyncy" \
-  --env ROOT_DATABASE_URL="postgres://postgres@host.docker.internal/asyncy" \
-  asyncy/graphql
+  --env DATABASE_URL="postgres://storyscript_authenticator:PLEASE_CHANGE_ME@host.docker.internal/storyscript" \
+  --env ROOT_DATABASE_URL="postgres://postgres@host.docker.internal/storyscript" \
+  storyscript/graphql

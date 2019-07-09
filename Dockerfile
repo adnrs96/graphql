@@ -1,5 +1,5 @@
 FROM          node:alpine
-LABEL         description="The Asyncy GraphQL stack, based on PostGraphile https://graphile.org/postgraphile/"
+LABEL         description="The Storyscript GraphQL stack, based on PostGraphile https://graphile.org/postgraphile/"
 EXPOSE        5000
 ENTRYPOINT    ["node", "server.js"]
 

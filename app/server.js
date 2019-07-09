@@ -32,12 +32,12 @@ const rootDatabaseURL = process.env.ROOT_DATABASE_URL;
 const databaseURL = process.env.DATABASE_URL;
 if (!rootDatabaseURL) {
   throw new Error(
-    "ROOT_DATABASE_URL envvar is required, it should be the authenticated URL to the database using the superuser account, e.g. postgres://superuser:superuser_password@pghost/asyncy"
+    "ROOT_DATABASE_URL envvar is required, it should be the authenticated URL to the database using the superuser account, e.g. postgres://superuser:superuser_password@pghost/storyscript"
   );
 }
 if (!databaseURL) {
   throw new Error(
-    "DATABASE_URL envvar is required, it should be the authenticated URL to the database using the unprivileged asyncy_authenticator account, e.g. postgres://asyncy_authenticator:SUPER_SECURE_PASSWORD_HERE@pghost/asyncy"
+    "DATABASE_URL envvar is required, it should be the authenticated URL to the database using the unprivileged storyscript_authenticator account, e.g. postgres://storyscript_authenticator:SUPER_SECURE_PASSWORD_HERE@pghost/storyscript"
   );
 }
 
@@ -52,7 +52,7 @@ const rootPgPool = new pg.Pool({
 async function pgSettings(req) {
   const basePermissions = {
     // Logged in or not, you're a visitor:
-    role: "asyncy_visitor"
+    role: "storyscript_visitor"
   };
   const auth = req.headers.authorization || "";
   const matches = auth.match(/^bearer ([-a-zA-Z0-9_/+=]+)$/i);
@@ -104,7 +104,7 @@ const postgraphileOptions = {
   dynamicJson: true,
   graphiql: true,
   bodySizeLimit: "10MB",
-  appendPlugins: [require("./AsyncyPlugin")],
+  appendPlugins: [require("./StoryscriptPlugin")],
   pgSettings,
 
   watchPg: isDev,
@@ -123,7 +123,7 @@ const server = http
   .listen(5000, "0.0.0.0", () => {
     const actualPort = server.address().port;
     console.log(
-      `Asyncy GraphQL, running PostGraphile v${
+      `Storyscript GraphQL, running PostGraphile v${
         manifest.version
       } listening on port ${actualPort.toString()} 🤩`
     );
