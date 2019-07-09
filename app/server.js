@@ -52,7 +52,7 @@ const rootPgPool = new pg.Pool({
 async function pgSettings(req) {
   const basePermissions = {
     // Logged in or not, you're a visitor:
-    role: "storyscript_visitor"
+    role: "asyncy_visitor"
   };
   const auth = req.headers.authorization || "";
   const matches = auth.match(/^bearer ([-a-zA-Z0-9_/+=]+)$/i);
