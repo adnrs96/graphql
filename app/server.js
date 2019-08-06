@@ -30,6 +30,8 @@ const POSTGRAPHILE_ERRORS_TO_SHOW = false
 
 const rootDatabaseURL = process.env.ROOT_DATABASE_URL;
 const databaseURL = process.env.DATABASE_URL;
+const enableCors = process.env.ENABLE_CORS === "true";
+
 if (!rootDatabaseURL) {
   throw new Error(
     "ROOT_DATABASE_URL envvar is required, it should be the authenticated URL to the database using the superuser account, e.g. postgres://superuser:superuser_password@pghost/storyscript"
@@ -106,7 +108,7 @@ const postgraphileOptions = {
   bodySizeLimit: "10MB",
   appendPlugins: [require("./StoryscriptPlugin")],
   pgSettings,
-
+  enableCors,
   watchPg: isDev,
   ignoreRBAC: false,
   setofFunctionsContainNulls: false,
