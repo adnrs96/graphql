@@ -113,7 +113,7 @@ const postgraphileOptions = {
   ignoreRBAC: false,
   setofFunctionsContainNulls: false,
   legacyRelations: "omit",
-
+  enhanceGraphiql: true,
   disableQueryLog: !isDev,
   showErrorStack: isDev,
   extendedErrors: isDev ? POSTGRAPHILE_ERRORS_TO_SHOW : ["errcode"]

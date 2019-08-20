@@ -4,7 +4,7 @@
   },
   "dependencies": {
     "pg": "7.4.3",
-    "postgraphile": "4.0.0-rc.4"
+    "postgraphile": "4.4.3"
   },
   "devDependencies": {
     "prettier": "1.14.2"
