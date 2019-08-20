@@ -1,65 +1,65 @@
-const http = require('http')
-const { postgraphile } = require('postgraphile')
-const manifest = require('postgraphile/package.json')
-const pg = require('pg')
+const http = require("http");
+const { postgraphile } = require("postgraphile");
+const manifest = require("postgraphile/package.json");
+const pg = require("pg");
 
-const isDev = process.env.NODE_ENV === 'development'
+const isDev = process.env.NODE_ENV === "development";
 
 const POSTGRAPHILE_ERRORS_TO_SHOW = false
-  ? ['hint', 'detail', 'errcode']
+  ? ["hint", "detail", "errcode"]
   : [
       // This list is excessive, but it does sometimes help debugging! We'll
       // only use this in development, not production.
-      'severity',
-      'code',
-      'detail',
-      'hint',
-      'positon',
-      'internalPosition',
-      'internalQuery',
-      'where',
-      'schema',
-      'table',
-      'column',
-      'dataType',
-      'constraint',
-      'file',
-      'line',
-      'routine'
-    ]
+      "severity",
+      "code",
+      "detail",
+      "hint",
+      "positon",
+      "internalPosition",
+      "internalQuery",
+      "where",
+      "schema",
+      "table",
+      "column",
+      "dataType",
+      "constraint",
+      "file",
+      "line",
+      "routine"
+    ];
 
-const rootDatabaseURL = process.env.ROOT_DATABASE_URL
-const databaseURL = process.env.DATABASE_URL
-const enableCors = process.env.ENABLE_CORS === 'true'
+const rootDatabaseURL = process.env.ROOT_DATABASE_URL;
+const databaseURL = process.env.DATABASE_URL;
+const enableCors = process.env.ENABLE_CORS === "true";
 
 if (!rootDatabaseURL) {
   throw new Error(
-    'ROOT_DATABASE_URL envvar is required, it should be the authenticated URL to the database using the superuser account, e.g. postgres://superuser:superuser_password@pghost/storyscript'
-  )
+    "ROOT_DATABASE_URL envvar is required, it should be the authenticated URL to the database using the superuser account, e.g. postgres://superuser:superuser_password@pghost/storyscript"
+  );
 }
 if (!databaseURL) {
   throw new Error(
-    'DATABASE_URL envvar is required, it should be the authenticated URL to the database using the unprivileged storyscript_authenticator account, e.g. postgres://storyscript_authenticator:SUPER_SECURE_PASSWORD_HERE@pghost/storyscript'
-  )
+    "DATABASE_URL envvar is required, it should be the authenticated URL to the database using the unprivileged storyscript_authenticator account, e.g. postgres://storyscript_authenticator:SUPER_SECURE_PASSWORD_HERE@pghost/storyscript"
+  );
 }
 
-const databaseSchemaNames = ['app_public']
+const databaseSchemaNames = ["app_public"];
 
 const rootPgPool = new pg.Pool({
   connectionString: rootDatabaseURL
-})
+});
 
 // pgSettings is documented here:
 // https://www.graphile.org/postgraphile/usage-library/#pgsettings-function
 async function pgSettings(req) {
   const basePermissions = {
     // Logged in or not, you're a visitor:
-    role: 'asyncy_visitor'
-  }
-  const auth = req.headers.authorization || ''
-  const matches = auth.match(/^bearer ([-a-zA-Z0-9_/+=]+)$/i)
+    role: "asyncy_visitor"
+  };
+  const auth = req.headers.authorization || "";
+  const matches = auth.match(/^bearer ([-a-zA-Z0-9_/+=]+)$/i);
   if (matches) {
-    const token = matches[1]
+    const token = matches[1];
     // TODO: need to consider adding more `WHERE` clauses to the below SQL query - e.g. `type`, `permissions`, etc.
     // TODO: security review
     const {
@@ -74,13 +74,13 @@ async function pgSettings(req) {
         limit 1
       `,
       [token]
-    )
+    );
     if (!row) {
       // ensure the error object is matching GraphQL/PostGraphile object: error { name, message, statusCode }
-      var error = new Error('InvalidOrExpiredToken')
-      error.statusCode = 401
-      error.name = 'InvalidOrExpiredToken'
-      throw error
+      var error = new Error("InvalidOrExpiredToken");
+      error.statusCode = 401;
+      error.name = "InvalidOrExpiredToken";
+      throw error;
     }
     return {
       ...basePermissions,
@@ -89,15 +89,15 @@ async function pgSettings(req) {
       // safe within PostgreSQL and we may want to use JWTs in future, so using
       // the same mechanism for everything makes sense - saves us having to
       // COALESCE(...) a number of different settings.
-      'jwt.claims.owner_uuid': row.owner_uuid,
+      "jwt.claims.owner_uuid": row.owner_uuid,
       ...(row.permissions
-        ? { 'jwt.claims.permissions': row.permissions.join(',') }
+        ? { "jwt.claims.permissions": row.permissions.join(",") }
         : null)
-    }
+    };
   }
   return {
     ...basePermissions
-  }
+  };
 }
 
 // PostGraphile options are documented here:
@@ -105,28 +105,28 @@ async function pgSettings(req) {
 const postgraphileOptions = {
   dynamicJson: true,
   graphiql: true,
-  bodySizeLimit: '10MB',
-  appendPlugins: [require('./StoryscriptPlugin')],
+  bodySizeLimit: "10MB",
+  appendPlugins: [require("./StoryscriptPlugin")],
   pgSettings,
   enableCors,
   watchPg: isDev,
   ignoreRBAC: false,
   setofFunctionsContainNulls: false,
-  legacyRelations: 'omit',
-  enhanceGraphiql: true,
+  legacyRelations: "omit",
+
   disableQueryLog: !isDev,
   showErrorStack: isDev,
-  extendedErrors: isDev ? POSTGRAPHILE_ERRORS_TO_SHOW : ['errcode']
-}
+  extendedErrors: isDev ? POSTGRAPHILE_ERRORS_TO_SHOW : ["errcode"]
+};
 const server = http
   .createServer(
     postgraphile(databaseURL, databaseSchemaNames, postgraphileOptions)
   )
-  .listen(5000, '0.0.0.0', () => {
-    const actualPort = server.address().port
+  .listen(5000, "0.0.0.0", () => {
+    const actualPort = server.address().port;
     console.log(
       `Storyscript GraphQL, running PostGraphile v${
         manifest.version
       } listening on port ${actualPort.toString()} 🤩`
-    )
-  })
+    );
+  });
