@@ -116,7 +116,8 @@ const postgraphileOptions = {
   enhanceGraphiql: true,
   disableQueryLog: !isDev,
   showErrorStack: isDev,
-  extendedErrors: isDev ? POSTGRAPHILE_ERRORS_TO_SHOW : ["errcode"]
+  extendedErrors: isDev ? POSTGRAPHILE_ERRORS_TO_SHOW : ["errcode"],
+  retryOnInitFail: true
 };
 const server = http
   .createServer(
