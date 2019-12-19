@@ -2,8 +2,13 @@ const http = require("http");
 const { postgraphile } = require("postgraphile");
 const manifest = require("postgraphile/package.json");
 const pg = require("pg");
+const express = require("express");
+const cookies = require("cookie-parser");
+const helmet = require("helmet");
+const cors = require("cors");
 
 const isDev = process.env.NODE_ENV === "development";
+const port = process.env.PORT || 5000;
 
 const POSTGRAPHILE_ERRORS_TO_SHOW = false
   ? ["hint", "detail", "errcode"]
@@ -56,6 +61,11 @@ async function pgSettings(req) {
     // Logged in or not, you're a visitor:
     role: "asyncy_visitor"
   };
+  // Cookies that have not been signed
+  console.log('Cookies: ', req.cookies)
+  // Cookies that have been signed
+  console.log('Signed Cookies: ', req.signedCookies)
+
   const auth = req.headers.authorization || "";
   const matches = auth.match(/^bearer ([-a-zA-Z0-9_/+=]+)$/i);
   if (matches) {
@@ -119,15 +129,32 @@ const postgraphileOptions = {
   extendedErrors: isDev ? POSTGRAPHILE_ERRORS_TO_SHOW : ["errcode"],
   retryOnInitFail: true
 };
-const server = http
-  .createServer(
-    postgraphile(databaseURL, databaseSchemaNames, postgraphileOptions)
-  )
-  .listen(5000, "0.0.0.0", () => {
-    const actualPort = server.address().port;
-    console.log(
-      `Storyscript GraphQL, running PostGraphile v${
-        manifest.version
-      } listening on port ${actualPort.toString()} 🤩`
-    );
-  });
+
+const whitelist = new RegExp(/^http[s]*:\/\/([\w\-\.]*)\.storyscript-ci\.com(:80([0-9][0-9])?)?$/)
+
+const corsOptions = {
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'],
+  credentials: true,
+  methods: 'GET,HEAD,OPTIONS,POST',
+  origin: function (origin, callback) {
+    if (!origin || whitelist.test(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by cors'))
+    }
+  },
+  preflightContinue: false
+}
+
+const app = express();
+
+app.use(cors(corsOptions));
+app.use(cookies());
+app.use(helmet());
+app.use(postgraphile(databaseURL, databaseSchemaNames, postgraphileOptions));
+
+app.listen(port, function () {
+  console.log(`Storyscript GraphQL, running PostGraphile v${manifest.version} listening on port ${port} 🤩`);
+});
+
+app.options('*', cors(corsOptions))
