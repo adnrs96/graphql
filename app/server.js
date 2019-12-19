@@ -9,6 +9,7 @@ const cors = require("cors");
 
 const isDev = process.env.NODE_ENV === "development";
 const port = process.env.PORT || 5000;
+const authCookieName = process.env.AUTH_COOKIE_NAME || 'storyscript-auth-cookie';
 
 const POSTGRAPHILE_ERRORS_TO_SHOW = false
   ? ["hint", "detail", "errcode"]
@@ -54,8 +55,6 @@ const rootPgPool = new pg.Pool({
   connectionString: rootDatabaseURL
 });
 
-const AUTH_COOKIE_NAME = 'sadn'
-
 // pgSettings is documented here:
 // https://www.graphile.org/postgraphile/usage-library/#pgsettings-function
 async function pgSettings(req) {
@@ -65,7 +64,7 @@ async function pgSettings(req) {
   };
 
   // get token from cookie
-  let token = (AUTH_COOKIE_NAME in req.cookies && req.cookies[AUTH_COOKIE_NAME]) || "";
+  let token = (authCookieName in req.cookies && req.cookies[authCookieName]) || "";
 
   // get cookie from authorization header
   if (!token) {
