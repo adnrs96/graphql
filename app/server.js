@@ -54,6 +54,8 @@ const rootPgPool = new pg.Pool({
   connectionString: rootDatabaseURL
 });
 
+const AUTH_COOKIE_NAME = 'sadn'
+
 // pgSettings is documented here:
 // https://www.graphile.org/postgraphile/usage-library/#pgsettings-function
 async function pgSettings(req) {
@@ -61,15 +63,22 @@ async function pgSettings(req) {
     // Logged in or not, you're a visitor:
     role: "asyncy_visitor"
   };
-  // Cookies that have not been signed
-  console.log('Cookies: ', req.cookies)
-  // Cookies that have been signed
-  console.log('Signed Cookies: ', req.signedCookies)
 
-  const auth = req.headers.authorization || "";
-  const matches = auth.match(/^bearer ([-a-zA-Z0-9_/+=]+)$/i);
-  if (matches) {
-    const token = matches[1];
+  // get token from cookie
+  let token = (AUTH_COOKIE_NAME in req.cookies && req.cookies[AUTH_COOKIE_NAME]) || "";
+
+  // get cookie from authorization header
+  if (!token) {
+    const auth = req.headers.authorization || "";
+    const matches = auth.match(/^bearer ([-a-zA-Z0-9_/+=]+)$/i);
+    if (matches) {
+      token = matches[1];
+    }
+  }
+  console.log('token = ', token)
+
+  // if token is there
+  if (token) {
     // TODO: need to consider adding more `WHERE` clauses to the below SQL query - e.g. `type`, `permissions`, etc.
     // TODO: security review
     const {
@@ -118,7 +127,7 @@ const postgraphileOptions = {
   bodySizeLimit: "10MB",
   appendPlugins: [require("./StoryscriptPlugin")],
   pgSettings,
-  enableCors,
+  enableCors: false,
   watchPg: isDev,
   ignoreRBAC: false,
   setofFunctionsContainNulls: false,
@@ -130,7 +139,7 @@ const postgraphileOptions = {
   retryOnInitFail: true
 };
 
-const whitelist = new RegExp(/^http[s]*:\/\/([\w\-\.]*)\.storyscript-ci\.com(:80([0-9][0-9])?)?$/)
+const whitelist = new RegExp(/^http[s]*:\/\/([\w\-\.]*)(localhost|\.storyscript-ci\.com)(:80([0-9][0-9])?)?$/)
 
 const corsOptions = {
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'],
