@@ -1,6 +1,6 @@
 import postgraphile, { HttpRequestHandler, PostGraphileOptions, mixed } from 'postgraphile'
 import { Request, Response } from 'express'
-import Helpers from '../utils/Helpers'
+import TokenManager from '../utils/TokenManager'
 import StoryscriptPlugin from './StoryscriptPlugin'
 
 // PostGraphile options are documented here:
@@ -46,16 +46,15 @@ export default class GraphQLServer {
 
   // pgSettings is documented here:
   // https://www.graphile.org/postgraphile/usage-library/#pgsettings-function
-  private async pgSettings(req: Request): Promise<{ [key: string]: mixed }> {
+  private async pgSettings(request: Request): Promise<{ [key: string]: mixed }> {
     const basePermissions = {
       // Logged in or not, you're a visitor:
       role: 'asyncy_visitor'
     }
 
-    const token = Helpers.getTokenFromRequest(req)
-    if (token) {
-      const ownerUuid = Helpers.getOwnerUuidFromJWT(token, this.verificationKey, { issuer: 'storyscript' })
-      return { ...basePermissions, 'jwt.claims.owner_uuid': ownerUuid }
+    const manager = TokenManager.from(request).with(this.verificationKey, { issuer: 'storyscript' })
+    if (manager.hasToken) {
+      return { ...basePermissions, 'jwt.claims.owner_uuid': manager.get.owner_uuid }
     }
     return basePermissions
   }
