@@ -1,10 +1,11 @@
 FROM          node:alpine
 LABEL         description="The Storyscript GraphQL stack, based on PostGraphile https://graphile.org/postgraphile/"
-EXPOSE        5000
-ENTRYPOINT    ["node", "server.js"]
 
-# RUN           npm install -g yarn@1.9.4
-
-COPY          ./app /app
 WORKDIR       /app
+COPY          package.json .
+COPY          yarn.lock .
 RUN           yarn install --production
+COPY          . .
+RUN           yarn build
+
+ENTRYPOINT    ["yarn", "start"]

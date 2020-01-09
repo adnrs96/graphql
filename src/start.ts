@@ -17,13 +17,17 @@ export async function start(): Promise<void> {
       'WHITELIST_DOMAINS_REGEXP envvar is required, it should be the list of domains allowed to access to the graphql api, e.g /^http[s]*://([w-.]*)localhost(:8080)?$/'
     )
   }
+
   const postgraphile = new GraphQLServer(process.env.DATABASE_URL, process.env.JWT_VERIFICATION_KEY)
   const server = new Server(postgraphile, process.env.WHITELIST_DOMAINS_REGEXP)
+
   await server.start()
+
   const graceful = async () => {
     await server.stop()
     process.exit(0)
   }
+
   process.on('SIGTERM', graceful)
   process.on('SIGINT', graceful)
 }

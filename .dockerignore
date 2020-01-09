@@ -1,2 +1,7 @@
 .git/
-app/node_modules/
+node_modules/
+dist
+.*
+README*
+*.config.js
+

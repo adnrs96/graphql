@@ -3,7 +3,6 @@ import { Plugin, SchemaBuilder, Inflection } from 'postgraphile'
 /*
  * This file contains some customisations over the default PostGraphile.
  */
-
 let StoryscriptPlugin: Plugin
 
 // eslint-disable-next-line prefer-const
@@ -11,12 +10,12 @@ StoryscriptPlugin = function(builder: SchemaBuilder) {
   builder.hook('inflection', (inflection: Inflection) => ({
     ...inflection,
     // Don't turn 'AppDns' into 'AppDn'
-    _singularizedTableName(table: any) {
+    _singularizedTableName(table: string): string {
       const tableName = this._tableName(table)
       return tableName.match(/dns$/i) ? tableName : inflection._singularizedTableName(table)
     },
     // Pluralize AppDns correctly
-    pluralize(string: any) {
+    pluralize(string: string): string {
       return string.match(/dns$/i) ? `${string}es` : inflection.pluralize(string)
     },
     // This removes the 'ByFooIdAndBarId' from the end of relations.
@@ -26,13 +25,13 @@ StoryscriptPlugin = function(builder: SchemaBuilder) {
     //   https://www.graphile.org/postgraphile/smart-comments/#renaming
     //
     // to rename the relation.
-    singleRelationByKeys(detailedKeys: any, table: any, _foreignTable: any, constraint: any) {
+    singleRelationByKeys(_detailedKeys: any, table: string, _foreignTable: string, constraint: any): string {
       return constraint.tags.fieldName || this.camelCase(`${this._singularizedTableName(table)}`)
     },
-    manyRelationByKeys(detailedKeys: any, table: any, _foreignTable: any, constraint: any) {
+    manyRelationByKeys(_detailedKeys: any, table: string, _foreignTable: string, constraint: any): string {
       return constraint.tags.foreignFieldName || this.camelCase(`${this.pluralize(this._singularizedTableName(table))}`)
     },
-    manyRelationByKeysSimple(detailedKeys: any, table: any, _foreignTable: any, constraint: any) {
+    manyRelationByKeysSimple(_detailedKeys: any, table: string, _foreignTable: string, constraint: any): string {
       return constraint.tags.foreignFieldName || this.camelCase(`${this.pluralize(this._singularizedTableName(table))}`)
     }
   }))

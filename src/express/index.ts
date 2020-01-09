@@ -25,7 +25,7 @@ export default class Server {
     return this._app
   }
 
-  constructor(postgaphile: GraphQLServer, whitelistRegexp: string, port = 3000) {
+  constructor(postgraphile: GraphQLServer, whitelistRegexp: string, port = 3000) {
     this._app = express()
     this.whitelist = new RegExp(whitelistRegexp)
     this.corsOptions = {
@@ -41,11 +41,9 @@ export default class Server {
       },
       preflightContinue: false
     }
-    this.config()
     this.PORT = +(process.env.PORT || port)
-    this.postgraphile = postgaphile
-
-    this.postConfig()
+    this.postgraphile = postgraphile
+    this.config()
   }
 
   /**
@@ -84,19 +82,13 @@ export default class Server {
   }
 
   /**
-   * Configure the express app middlewares, before services are registered
+   * Configure the express app middlewares
    */
   private config(): void {
     this._app.use(cors(this.corsOptions))
     this._app.use(cookies())
     this._app.use(helmet())
     this._app.use(morgan('combined'))
-  }
-
-  /**
-   * Configure the express app middlewares, after services are registered
-   */
-  private postConfig(): void {
     this._app.options('*', cors(this.corsOptions))
     this._app.use(this.postgraphile.handler)
   }
