@@ -1,0 +1,16 @@
+name: Build Docker Image
+
+on: [push]
+      
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Login to Docker HUB
+        run: docker login -u $DOCKER_USER -p $DOCKER_PASSWD
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASSWD: ${{ secrets.DOCKER_PASSWD }}
+      - name: Build, tag and push
+        run: .docker/build.sh

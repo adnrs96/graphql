@@ -1,0 +1,56 @@
+version: '3.7'
+
+services:
+  database:
+    image: postgres:10
+    container_name: database
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h localhost -U postgres']
+      interval: 3s
+      timeout: 2s
+      retries: 7
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=storyscript
+    ports:
+      - 5432:5432
+    networks:
+      - storynet
+
+  start-database:
+    image: dadarek/wait-for-dependencies
+    depends_on:
+      - database
+    command: database:5432
+    networks:
+      - storynet
+
+  migrations:
+    image: storyscript/database:latest
+    depends_on:
+      - start-database
+    environment:
+      DATABASE_URL: db:pg://postgres:postgres@database/storyscript
+      PGOPTIONS: "-c storyscript.graphql_authenticator_username=storyscript-ci -c storyscript.graphql_authenticator_password=inkieFTW"
+    networks:
+      - storynet
+
+  graphql:
+    build: . 
+    depends_on:
+      - migrations
+    ports:
+      - 3000:3000
+    env_file:
+      - .env
+      - .env.local
+      - .env.compose
+    networks:
+      - storynet
+
+networks:
+  storynet:
+    external: false
+    driver: bridge
+    name: storynet
