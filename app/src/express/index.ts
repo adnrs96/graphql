@@ -4,10 +4,10 @@ import cors from 'cors'
 import morgan from 'morgan'
 import cookies from 'cookie-parser'
 import helmet from 'helmet'
-import { GraphQLServer } from './Postgraphile'
-import { UnauthorizedError } from './Errors'
+import GraphQLServer from '../postgraphile'
+import { UnauthorizedError } from '../utils/Errors'
 
-export class Server {
+export default class Server {
   public PORT: number
   private whitelist: RegExp
   private corsOptions: cors.CorsOptions
@@ -25,13 +25,9 @@ export class Server {
     return this._app
   }
 
-  constructor(postgaphile: GraphQLServer, port = 3000) {
+  constructor(postgaphile: GraphQLServer, whitelistRegexp: string, port = 3000) {
     this._app = express()
-
-    this.whitelist = new RegExp(/^https:\/\/([\w\-\.]*)(storyscript\.io|netlify\.com|netlify\.live)$/)
-    if (process.env.NODE_ENV !== 'production') {
-      this.whitelist = new RegExp(/^http[s]*:\/\/([\w\-\.]*)(localhost|\.storyscript-ci\.com)(:[38]0([0-9][0-9])?)?$/)
-    }
+    this.whitelist = new RegExp(whitelistRegexp)
     this.corsOptions = {
       allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'],
       credentials: true,

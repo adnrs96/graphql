@@ -1,6 +1,6 @@
 import postgraphile, { HttpRequestHandler, PostGraphileOptions, mixed } from 'postgraphile'
 import { Request, Response } from 'express'
-import Helpers from './Helpers'
+import Helpers from '../utils/Helpers'
 import StoryscriptPlugin from './StoryscriptPlugin'
 
 // PostGraphile options are documented here:
@@ -22,7 +22,7 @@ const DEFAULT_GQL_OPTIONS: PostGraphileOptions = {
   retryOnInitFail: true
 }
 
-export class GraphQLServer {
+export default class GraphQLServer {
   private readonly _handler: HttpRequestHandler
   private readonly schemas: string[] = ['app_public']
   private readonly opts: PostGraphileOptions<Request, Response>
