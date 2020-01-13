@@ -8,8 +8,8 @@ abstract class HttpError extends Error {
 }
 
 export class UnauthorizedError extends HttpError {
-  constructor(message?: string) {
-    super('UnauthorizedError', message || 'Unauthorized')
+  constructor(message: string) {
+    super('UnauthorizedError', message)
     this.statusCode = 401
   }
 }

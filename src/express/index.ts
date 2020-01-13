@@ -4,7 +4,6 @@ import cors from 'cors'
 import morgan from 'morgan'
 import cookies from 'cookie-parser'
 import helmet from 'helmet'
-import GraphQLServer from '../postgraphile'
 import { UnauthorizedError } from '../utils/Errors'
 
 export default class Server {
@@ -14,7 +13,6 @@ export default class Server {
 
   private readonly _app: express.Application
   private server?: HttpServer = undefined
-  private readonly postgraphile: GraphQLServer
 
   /**
    * get the current express application object
@@ -25,7 +23,7 @@ export default class Server {
     return this._app
   }
 
-  constructor(postgraphile: GraphQLServer, whitelistRegexp: string, port = 3000) {
+  constructor(whitelistRegexp: string, port = 3000) {
     this._app = express()
     this.whitelist = new RegExp(whitelistRegexp)
     this.corsOptions = {
@@ -42,25 +40,26 @@ export default class Server {
       preflightContinue: false
     }
     this.PORT = +(process.env.PORT || port)
-    this.postgraphile = postgraphile
     this.config()
   }
 
   /**
    * Start the server
    *
-   * @returns {Promise<any>} returns Void when the server is started
+   * @returns {Promise<boolean>} returns true when the server is started
    */
-  public async start(): Promise<any> {
-    return new Promise<any>((resolve, reject) => {
-      this.server = this._app.listen(this.PORT, (err: any) => {
-        if (err) {
-          return reject(err)
-        }
+  public async start(): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+      if (this.server) return resolve(true)
 
-        console.log(`Server is running on http://localhost:${this.PORT}`)
-        return resolve()
-      })
+      this.server = this._app
+        .listen(this.PORT, () => {
+          console.log(`Server is running on http://localhost:${this.PORT}`)
+          resolve(true)
+        })
+        .on('error', (err: Error) => {
+          reject(err)
+        })
     })
   }
 
@@ -71,13 +70,15 @@ export default class Server {
    */
   public async stop(): Promise<boolean> {
     return new Promise<boolean>(resolve => {
-      if (this.server) {
-        this.server.close(() => {
-          return resolve(true)
-        })
-      } else {
-        return resolve(true)
-      }
+      if (!this.server) return resolve(false)
+
+      this.server.close((err?: Error) => {
+        if (err) {
+          resolve(false)
+        } else {
+          resolve(true)
+        }
+      })
     })
   }
 
@@ -90,6 +91,5 @@ export default class Server {
     this._app.use(helmet())
     this._app.use(morgan('combined'))
     this._app.options('*', cors(this.corsOptions))
-    this._app.use(this.postgraphile.handler)
   }
 }

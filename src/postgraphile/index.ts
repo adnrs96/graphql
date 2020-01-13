@@ -3,25 +3,6 @@ import { Request, Response } from 'express'
 import TokenManager from '../utils/TokenManager'
 import StoryscriptPlugin from './StoryscriptPlugin'
 
-// PostGraphile options are documented here:
-// https://www.graphile.org/postgraphile/usage-library/#api-postgraphilepgconfig-schemaname-options
-const DEFAULT_GQL_OPTIONS: PostGraphileOptions = {
-  dynamicJson: true,
-  graphiql: true,
-  bodySizeLimit: '2MB',
-  appendPlugins: [StoryscriptPlugin],
-  enableCors: false,
-  watchPg: process.env.NODE_ENV === 'development',
-  ignoreRBAC: false,
-  setofFunctionsContainNulls: false,
-  legacyRelations: 'omit',
-  enhanceGraphiql: true,
-  disableQueryLog: process.env.NODE_ENV !== 'development',
-  showErrorStack: process.env.NODE_ENV === 'development',
-  extendedErrors: process.env.NODE_ENV === 'development' ? ['hint', 'detail', 'errcode'] : ['errcode'],
-  retryOnInitFail: true
-}
-
 export default class GraphQLServer {
   private readonly _handler: HttpRequestHandler
   private readonly schemas: string[] = ['app_public']
@@ -29,19 +10,42 @@ export default class GraphQLServer {
   private readonly databaseURL: string
   private readonly verificationKey: string
 
-  constructor(databaseURL: string, verificationKey: string, opts?: PostGraphileOptions) {
+  constructor(databaseURL: string, verificationKey: string, debug: boolean, opts?: PostGraphileOptions) {
     this.databaseURL = databaseURL
     this.verificationKey = verificationKey
+
+    // PostGraphile options are documented here:
+    // https://www.graphile.org/postgraphile/usage-library/#api-postgraphilepgconfig-schemaname-options
+    /* istanbul ignore next line */
     this.opts = {
-      ...DEFAULT_GQL_OPTIONS,
+      dynamicJson: true,
+      graphiql: true,
+      bodySizeLimit: '2MB',
+      appendPlugins: [StoryscriptPlugin],
+      enableCors: false,
+      watchPg: debug,
+      ignoreRBAC: false,
+      setofFunctionsContainNulls: false,
+      legacyRelations: 'omit',
+      enhanceGraphiql: true,
+      disableQueryLog: !debug,
+      showErrorStack: debug,
+      extendedErrors: debug ? ['hint', 'detail', 'errcode'] : ['errcode'],
+      retryOnInitFail: true,
       pgSettings: (req: Request): Promise<{ [key: string]: mixed }> => this.pgSettings(req),
       ...opts
     }
-    this._handler = postgraphile(this.databaseURL, this.schemas, this.opts)
+
+    this._handler = postgraphile<Request, Response>(this.databaseURL, this.schemas, this.opts)
   }
 
-  public get handler(): HttpRequestHandler {
+  public async handler(): Promise<HttpRequestHandler> {
+    await this._handler.getGraphQLSchema()
     return this._handler
+  }
+
+  public async disconnect() {
+    await this._handler.pgPool.end()
   }
 
   // pgSettings is documented here:

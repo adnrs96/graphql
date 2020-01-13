@@ -45,10 +45,10 @@ export default class TokenManager {
     const authCookieName = process.env.AUTH_COOKIE_NAME || 'storyscript-access-token'
 
     // get token from cookie
-    let token = (authCookieName in request.cookies && request.cookies[authCookieName]) || ''
+    let token = (request.cookies && authCookieName in request.cookies && request.cookies[authCookieName]) || ''
 
     // get cookie from authorization header
-    if (!token && request.headers.authorization) {
+    if (!token && request.headers && request.headers.authorization) {
       const matches = request.headers.authorization.match(/^bearer ([-a-zA-Z0-9_/+=\.]+)$/i)
       if (matches) {
         token = matches[1]
