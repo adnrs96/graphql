@@ -1,6 +1,8 @@
-.git/
-node_modules/
+.git
+node_modules
 dist
+tests
+coverage
 .*
 README*
 *.config.js

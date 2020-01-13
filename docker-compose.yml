@@ -32,20 +32,20 @@ services:
       - start-database
     environment:
       DATABASE_URL: db:pg://postgres:postgres@database/storyscript
-      PGOPTIONS: "-c storyscript.graphql_authenticator_username=storyscript-ci -c storyscript.graphql_authenticator_password=inkieFTW"
+      PGOPTIONS: "-c storyscript.graphql_authenticator_username=storyscript-ci -c storyscript.graphql_authenticator_password=storyscript-ci-pwd"
     networks:
       - storynet
 
   graphql:
-    build: . 
+    build: .
     depends_on:
       - migrations
     ports:
       - 3000:3000
     env_file:
       - .env
-      - .env.local
-      - .env.compose
+    environment:
+      DATABASE_URL: postgresql://storyscript-ci:storyscript-ci-pwd@database/storyscript
     networks:
       - storynet
 

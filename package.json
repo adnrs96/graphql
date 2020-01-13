@@ -10,7 +10,9 @@
     "build": "tsc --declaration",
     "watch": "tsc-watch --onSuccess 'yarn start'",
     "lint": "eslint src/*.ts src/**/*.ts --fix",
-    "test": "jest --coverage --verbose --runInBand"
+    "pretest": "docker-compose up -d migrations",
+    "test": "jest --coverage --verbose --runInBand",
+    "posttest": "docker-compose down"
   },
   "dependencies": {
     "@types/cookie-parser": "^1.4.2",
@@ -31,6 +33,7 @@
     "typescript": "3.7.4"
   },
   "devDependencies": {
+    "@types/supertest": "^2.0.8",
     "@typescript-eslint/eslint-plugin": "1.13.0",
     "@typescript-eslint/parser": "1.13.0",
     "eslint": "6.1.0",
@@ -40,6 +43,7 @@
     "jest": "24.8.0",
     "lint-staged": "9.2.0",
     "prettier": "1.18.2",
+    "supertest": "^4.0.2",
     "ts-jest": "24.0.2",
     "tsc-watch": "2.2.1"
   },
