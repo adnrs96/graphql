@@ -1,4 +1,4 @@
-name: Studio Unit Tests
+name: GraphQL Unit Tests
 
 on: [push]
 
@@ -21,7 +21,7 @@ jobs:
             v1-deps-
       - name: Installing dependencies
         if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: yarn 
+        run: yarn
       - name: Linting
         run: yarn lint
       - name: Setting up pre-test task
@@ -33,5 +33,3 @@ jobs:
         run: bash <(curl -s https://codecov.io/bash -t $CODECOV_TOKEN)
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      
-      
