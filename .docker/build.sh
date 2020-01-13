@@ -1,7 +1,7 @@
 BRANCH=$(jq --raw-output .ref "${GITHUB_EVENT_PATH}");
 BRANCH=$(echo "${BRANCH/refs\/heads\//}")
 BRANCH="$(echo "$BRANCH" | sed -r 's/\//_/g')"
-NAME="storyscript/platform-graphql"
+NAME="storyscript/graphql"
 
 docker build \
   -t $NAME:$BRANCH \
