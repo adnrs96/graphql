@@ -8,7 +8,7 @@ docker build \
   .
 
 if [ $BRANCH = 'master' ]; then
-  docker tag $NAME:$HASH $NAME:latest
+  docker tag $NAME:$BRANCH $NAME:latest
   echo "Successfully tagged $NAME:latest"
   echo ""
   echo "Pushing $NAME:latest"
